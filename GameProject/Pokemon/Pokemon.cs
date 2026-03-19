@@ -34,4 +34,14 @@
                 break;
         }
     }
+
+    public void AttackTo(Skill skill, Pokemon target)
+    {
+
+    }
+
+    public void AttackFrom()
+    {
+
+    }
 }

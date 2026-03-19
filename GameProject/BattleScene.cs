@@ -28,6 +28,10 @@ class BattleScene : Scene
 
     public override void Update(float deltaTime)
     {
+        if (Input.IsKeyDown(ConsoleKey.Escape))
+        {
+            ReturnRequested?.Invoke();
+        }
     }
 
     public override void Draw(ScreenBuffer buffer)

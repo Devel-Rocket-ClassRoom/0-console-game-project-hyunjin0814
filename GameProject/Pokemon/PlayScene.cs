@@ -30,6 +30,7 @@ public class PlayScene : Scene
     public override void Update(float deltaTime)
     {
         UpdateGameObjects(deltaTime);
+        // 임시로 작성된 배틀씬 전환 테스트 코드
         if (Input.IsKeyDown(ConsoleKey.Enter))
         {
             BattleRequested?.Invoke();
