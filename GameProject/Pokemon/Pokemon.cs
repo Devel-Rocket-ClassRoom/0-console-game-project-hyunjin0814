@@ -1,20 +1,21 @@
-﻿public class Pokemon
+﻿public class Pokemon : IAttacker, IDefender
 {
     public string Name { get; private set; }
     public string Type { get; private set; }
-    public int CurrentHP { get; private set; }
+    public int CurrentHp { get; private set; }
     public int MaxHp { get; private set; }
-    public int Attack { get; private set; }
+    public int AttackPower { get; private set; }
     public int Defense { get; private set; }
     public int Speed { get; private set; }
+    public bool IsDead { get; private set; }
 
     public Pokemon(string name, string type, int hp, int attack, int defense, int speed)
     {
         Name = name;
         Type = type;
         MaxHp = hp;
-        CurrentHP = hp;
-        Attack = attack;
+        CurrentHp = hp;
+        AttackPower = attack;
         Defense = defense;
         Speed = speed;
     }
@@ -24,7 +25,7 @@
         switch (statName)
         {
             case "공격":
-                Attack += Attack * buffLevel;
+                AttackPower += AttackPower * buffLevel;
                 break;
             case "방어":
                 Defense += Defense * buffLevel;
@@ -35,12 +36,12 @@
         }
     }
 
-    public void AttackTo(Skill skill, Pokemon target)
+    public void TakeDamage(int damage)
     {
-
+        CurrentHp = damage - Defense;
     }
 
-    public void AttackFrom()
+    void IAttacker.Attack(IDefender target)
     {
 
     }

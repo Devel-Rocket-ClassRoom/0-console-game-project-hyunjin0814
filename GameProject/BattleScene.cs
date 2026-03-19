@@ -5,6 +5,7 @@ class BattleScene : Scene
 {
     private Player player;
     private Trainer enemy;
+    private string _log;
 
     public event GameAction ReturnRequested;
 

@@ -54,7 +54,7 @@ public class Player : Trainer
             buffer.WriteText(2, 13, " /\\_/\\");
             buffer.WriteText(2, 14, "( o.o )");
             buffer.WriteText(2, 15, " > ^ <");
-            buffer.WriteText(2, 16, $"[{pokemons[0].Name}] {pokemons[0].CurrentHP}/{pokemons[0].MaxHp}", ConsoleColor.Blue);
+            buffer.WriteText(2, 16, $"[{pokemons[0].Name}] {pokemons[0].CurrentHp}/{pokemons[0].MaxHp}", ConsoleColor.Blue);
         }
         else
         {

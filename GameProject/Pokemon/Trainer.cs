@@ -28,7 +28,7 @@ public class Trainer : GameObject
         if (isBattle)
         {
             // 처음에는 첫 번째 포켓몬을 출력하도록 수정
-            buffer.WriteText(45, 2, $"[{pokemons[0].Name}] {pokemons[0].CurrentHP}/{pokemons[0].MaxHp}", ConsoleColor.Red);
+            buffer.WriteText(45, 2, $"[{pokemons[0].Name}] {pokemons[0].CurrentHp}/{pokemons[0].MaxHp}", ConsoleColor.Red);
             buffer.WriteText(45, 3, " /\\_/\\");
             buffer.WriteText(45, 4, "( o.o )");
             buffer.WriteText(45, 5, " > ^ <");

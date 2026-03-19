@@ -30,9 +30,11 @@
 
     public static void Battle(Pokemon pokemon1, Pokemon pokemon2)
     {
-        while (pokemon1.CurrentHP != 0 || pokemon2.CurrentHP != 0)
+        while (pokemon1.CurrentHp != 0 || pokemon2.CurrentHp != 0)
         {
-
+            if (pokemon1.Speed >= pokemon2.Speed)
+            {
+            }
         }
     }
 }
