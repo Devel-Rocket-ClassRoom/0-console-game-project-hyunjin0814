@@ -1,11 +1,16 @@
 ﻿public class Skill
 {
-    private string _name;
-    private string _type;
+    public string Name { get; private set; }
+    public PokemonType Type { get; private set; }
+    public int PowerRate { get; private set; }
+    public int HitRate { get; private set; }
 
-    public Skill(string name, string type)
+
+    public Skill(string name, PokemonType type, int powerRate, int hitRate)
     {
-        _name = name; 
-        _type = type;
+        Name = name;
+        Type = type;
+        PowerRate = powerRate;
+        HitRate = hitRate;
     }
 }

@@ -48,18 +48,7 @@ public class Player : Trainer
 
     public override void Draw(ScreenBuffer buffer)
     {
-        if (isBattle)
-        {
-            // 처음에는 첫 번째 포켓몬을 출력하도록 수정
-            buffer.WriteText(2, 13, " /\\_/\\");
-            buffer.WriteText(2, 14, "( o.o )");
-            buffer.WriteText(2, 15, " > ^ <");
-            buffer.WriteText(2, 16, $"[{pokemons[0].Name}] {pokemons[0].CurrentHp}/{pokemons[0].MaxHp}", ConsoleColor.Blue);
-        }
-        else
-        {
-            buffer.SetCell(Position.X, Position.Y, '@', ConsoleColor.Green);
-        }
+        buffer.SetCell(Position.X, Position.Y, '@', ConsoleColor.Green);
     }
 
     public override void Update(float deltaTime)
