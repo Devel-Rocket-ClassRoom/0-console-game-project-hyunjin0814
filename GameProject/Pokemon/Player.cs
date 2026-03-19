@@ -1,11 +1,16 @@
 ﻿using System;
 using Framework.Engine;
 
-public class Pokemon : GameObject
+public class Player : GameObject
 {
-    public Pokemon(Scene scene) : base(scene)
-    {
+    private (int X, int Y) _position;
 
+    public Player(Scene scene, int startX, int startY) : base(scene)
+    {
+        Name = "Player";
+
+        _position.X = startX;
+        _position.Y = startY;
     }
     public override void Draw(ScreenBuffer buffer)
     {
