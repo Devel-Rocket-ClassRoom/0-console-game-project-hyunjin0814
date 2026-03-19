@@ -27,10 +27,18 @@ public class PlayScene : Scene
     public override void Update(float deltaTime)
     {
         UpdateGameObjects(deltaTime);
-
+        if (player.Position.X + 1 == npc.Position.X)
+        {
+            
+        }
     }
     public override void Draw(ScreenBuffer buffer)
     {
         DrawGameObjects(buffer);
+
+        if (Input.IsKeyDown(ConsoleKey.Enter))
+        {
+            buffer.Clear();
+        }
     }
 }

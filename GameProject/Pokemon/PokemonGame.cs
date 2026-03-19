@@ -36,4 +36,9 @@ public class PokemonGame : GameApp
         var play = new PlayScene();
         _scenes.ChangeScene(play);
     }
+
+    private void ChageToBattle()
+    {
+
+    }
 }

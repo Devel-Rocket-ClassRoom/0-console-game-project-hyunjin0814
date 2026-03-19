@@ -3,6 +3,7 @@ using Framework.Engine;
 
 public class Trainer : GameObject
 {
+    protected Pokemon[] pokemons = new Pokemon[3];
     protected (int X, int Y) _position;
 
     protected string _name;
