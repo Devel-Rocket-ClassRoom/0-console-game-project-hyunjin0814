@@ -7,6 +7,7 @@ public class Player : Trainer
         _name = name;
         _position.X = startX;
         _position.Y = startY;
+        isBattle = false;
     }
 
     private void Move()
@@ -47,7 +48,18 @@ public class Player : Trainer
 
     public override void Draw(ScreenBuffer buffer)
     {
-        buffer.SetCell(Position.X, Position.Y, '@', ConsoleColor.Green);
+        if (isBattle)
+        {
+            // 처음에는 첫 번째 포켓몬을 출력하도록 수정
+            buffer.WriteText(2, 13, " /\\_/\\");
+            buffer.WriteText(2, 14, "( o.o )");
+            buffer.WriteText(2, 15, " > ^ <");
+            buffer.WriteText(2, 16, $"[{pokemons[0].Name}] {pokemons[0].CurrentHP}/{pokemons[0].MaxHp}", ConsoleColor.Blue);
+        }
+        else
+        {
+            buffer.SetCell(Position.X, Position.Y, '@', ConsoleColor.Green);
+        }
     }
 
     public override void Update(float deltaTime)

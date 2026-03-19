@@ -7,6 +7,9 @@ public class PlayScene : Scene
     private Player player;
     private Trainer npc;
 
+    public event GameAction BattleRequested;
+    public event GameAction PlayAgainRequested;
+
     public override void Load()
     {
         wall = new Wall(this);
@@ -27,18 +30,17 @@ public class PlayScene : Scene
     public override void Update(float deltaTime)
     {
         UpdateGameObjects(deltaTime);
-        if (player.Position.X + 1 == npc.Position.X)
+        if (Input.IsKeyDown(ConsoleKey.Enter))
         {
-            
+            BattleRequested?.Invoke();
+        }
+        if (Input.IsKeyDown(ConsoleKey.Escape))
+        {
+            PlayAgainRequested?.Invoke();
         }
     }
     public override void Draw(ScreenBuffer buffer)
     {
         DrawGameObjects(buffer);
-
-        if (Input.IsKeyDown(ConsoleKey.Enter))
-        {
-            buffer.Clear();
-        }
     }
 }

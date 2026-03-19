@@ -34,11 +34,15 @@ public class PokemonGame : GameApp
     private void ChangeToPlay()
     {
         var play = new PlayScene();
+        play.BattleRequested += ChageToBattle;
+        play.PlayAgainRequested += ChangeToTitle;
         _scenes.ChangeScene(play);
     }
 
     private void ChageToBattle()
     {
-
+        var battle = new BattleScene();
+        battle.ReturnRequested += ChangeToPlay;
+        _scenes.ChangeScene(battle);
     }
 }
