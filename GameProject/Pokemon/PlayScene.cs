@@ -33,6 +33,7 @@ public class PlayScene : Scene
         // 임시로 작성된 배틀씬 전환 테스트 코드
         if (Input.IsKeyDown(ConsoleKey.Enter))
         {
+            Thread.Sleep(1000);
             BattleRequested?.Invoke();
         }
         if (Input.IsKeyDown(ConsoleKey.Escape))
