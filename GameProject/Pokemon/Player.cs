@@ -1,17 +1,10 @@
 ﻿using Framework.Engine;
-using System;
-using System.Xml.Linq;
 
-public class Player : GameObject
+public class Player : Trainer
 {
-    private (int X, int Y) _position;
-
-    public (int X, int Y) Position => _position;
-
-    public Player(Scene scene, int startX, int startY) : base(scene)
+    public Player(Scene scene, int startX, int startY, string name) : base(scene, startX, startY, name)
     {
-        Name = "Player";
-
+        _name = name;
         _position.X = startX;
         _position.Y = startY;
     }
@@ -21,18 +14,34 @@ public class Player : GameObject
         if (Input.IsKey(ConsoleKey.UpArrow))
         {
             _position.Y = _position.Y - 1;
+            if (_position.Y < 1)
+            {
+                _position.Y = 1;
+            }
         }
         else if (Input.IsKey(ConsoleKey.DownArrow))
         {
             _position.Y = _position.Y + 1;
+            if (_position.Y > 28)
+            {
+                _position.Y = 28;
+            }
         }
         else if (Input.IsKey(ConsoleKey.LeftArrow))
         {
             _position.X = _position.X - 1;
+            if (_position.X < 1)
+            {
+                _position.X = 1;
+            }
         }
         else if (Input.IsKey(ConsoleKey.RightArrow))
         {
             _position.X = _position.X + 1;
+            if (_position.X > 58)
+            {
+                _position.X = 58;
+            }
         }
     }
 

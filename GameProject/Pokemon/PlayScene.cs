@@ -5,14 +5,18 @@ public class PlayScene : Scene
 {
     private Wall wall;
     private Player player;
+    private Trainer npc;
 
     public override void Load()
     {
         wall = new Wall(this);
         AddGameObject(wall);
 
-        player = new Player(this, 29, 14);
+        player = new Player(this, 29, 14, "Player");
         AddGameObject(player);
+
+        npc = new Trainer(this, 29, 4, "NPC1");
+        AddGameObject(npc);
     }
 
     public override void Unload()
@@ -23,6 +27,7 @@ public class PlayScene : Scene
     public override void Update(float deltaTime)
     {
         UpdateGameObjects(deltaTime);
+
     }
     public override void Draw(ScreenBuffer buffer)
     {

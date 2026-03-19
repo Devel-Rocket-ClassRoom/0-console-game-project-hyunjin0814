@@ -1,5 +1,4 @@
-﻿using System;
-using Framework.Engine;
+﻿using Framework.Engine;
 
 public class Wall : GameObject
 {
@@ -23,7 +22,7 @@ public class Wall : GameObject
 
     public bool IsInBounds(int x, int y)
     {
-        return x >= Left && x <= Right && y >= Top && y <= Bottom;
+        return x >= Left + 1 && x <= Right - 1 && y >= Top + 1 && y <= Bottom - 1;
     }
 
     public bool IsInBounds((int X, int Y) position)
