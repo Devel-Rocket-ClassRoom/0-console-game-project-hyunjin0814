@@ -6,6 +6,9 @@ public class PlayScene : Scene
     private Wall wall;
     private Player player;
     private Trainer npc;
+    private Healer healer;
+    private string _currentLog = string.Empty;
+    //private PlayerState _playerState;
 
     public event GameAction BattleRequested;
     public event GameAction PlayAgainRequested;
@@ -35,6 +38,9 @@ public class PlayScene : Scene
 
         npc = new Trainer(this, 29, 4, "NPC1");
         AddGameObject(npc);
+
+        healer = new Healer(this, 2, 11, "Healer");
+        AddGameObject(healer);
     }
 
     public override void Unload()
@@ -46,7 +52,8 @@ public class PlayScene : Scene
     {
         UpdateGameObjects(deltaTime);
 
-        if (npc.IsInBounds(player.Position.X, player.Position.Y))
+        // 플레이어의 경계에 있는 개체의 정보를 저장하고 그 개체에 맞춰서 하는 행동을 다르게 하면 좋을듯 (다운캐스팅, 패턴매칭 활용)
+        if (player.IsInBounds(npc.Position.X, npc.Position.Y))
         {
             player.PositionSave();
 
@@ -63,13 +70,73 @@ public class PlayScene : Scene
             player.PositionLoad();
         }
 
+        if (player.IsInBounds(healer.Position.X, healer.Position.Y))
+        {
+            player.PositionSave();
+
+            // 임시로 작성된 회복 코드
+            if (Input.IsKeyDown(ConsoleKey.Enter))
+            {
+                for (int i = 0; i < player.Pokemons.Length; i++)
+                {
+                    player.Pokemons[i]?.Heal();
+                }
+                _currentLog = "포켓몬들이 건강해졌다!";
+                //_playerState = PlayerState.SkipText;
+            }
+        }
+        else if (healer.Position == player.Position)
+        {
+            player.PositionLoad();
+        }
+
+        //switch (_playerState)
+        //{
+        //    case PlayerState.SelectAction:
+        //        break;
+
+        //    case PlayerState.SkipText:
+        //    case PlayerState.Move:
+        //        if (Input.IsKeyDown(ConsoleKey.Enter))
+        //            ProcessNextState();
+        //        break;
+        //}
+
         if (Input.IsKeyDown(ConsoleKey.Escape))
         {
             PlayAgainRequested?.Invoke();
         }
     }
+
+    //private void ProcessNextState()
+    //{
+    //    if (_playerState == PlayerState.SelectAction)
+    //    {
+
+    //    }
+    //    else if (_playerState == PlayerState.SkipText)
+    //    {
+    //        if (Input.IsKeyDown(ConsoleKey.Enter))
+    //        {
+    //            _playerState = PlayerState.Move;
+    //        }
+    //    }
+    //    else
+    //    {
+    //        _currentLog = string.Empty;
+    //    }
+    //}
     public override void Draw(ScreenBuffer buffer)
     {
         DrawGameObjects(buffer);
+
+        buffer.WriteText(65, 15, _currentLog, ConsoleColor.White);
     }
+}
+
+public enum PlayerState
+{
+    SelectAction,
+    SkipText,
+    Move
 }

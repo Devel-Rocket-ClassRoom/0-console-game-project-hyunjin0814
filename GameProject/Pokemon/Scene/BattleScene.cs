@@ -1,5 +1,6 @@
-﻿using System;
-using Framework.Engine;
+﻿using Framework.Engine;
+using System;
+using System.Drawing;
 
 class BattleScene : Scene
 {
@@ -60,6 +61,8 @@ class BattleScene : Scene
         //if (Input.IsKeyDown(ConsoleKey.Escape)) ReturnRequested?.Invoke();
     }
 
+
+
     // 선택지 인덱스 0~3으로 조정
     private void HandleInput()
     {
@@ -71,7 +74,7 @@ class BattleScene : Scene
         }
         if (Input.IsKeyDown(ConsoleKey.DownArrow))
         {
-            _selectedSkillIndex = Math.Min(3, _selectedSkillIndex + 1);
+            _selectedSkillIndex = Math.Min(4, _selectedSkillIndex + 1);
         }
         if (Input.IsKeyDown(ConsoleKey.Enter))
         {
@@ -189,11 +192,6 @@ class BattleScene : Scene
         _currentState = BattleState.EnemyAttack;
     }
 
-    private void ChageEnemyTurn()
-    {
-        _enemyPokemonIndex++;
-    }
-
     public override void Draw(ScreenBuffer buffer)
     {
         DrawGameObjects(buffer);
@@ -201,14 +199,36 @@ class BattleScene : Scene
         DrawPokemonInfo(buffer, player.Pokemons[_playerPokemonIndex], isPlayer: true);
         DrawPokemonInfo(buffer, enemy.Pokemons[_enemyPokemonIndex], isPlayer: false);
 
+
         if (_currentState == BattleState.SelectAction)
         {
             DrawSkillMenu(buffer);
         }
+        //else if (_currentState == BattleState.Menu)
+        //{
+        //    // 스킬 사용, 교체, 아이템 사용 메뉴들을 콘솔창에 보여주고 선택한 메뉴의 창을 띄움
+        //    DrawMenu(buffer);
+        //}
+        //else if (_currentState == BattleState.ChangePokemon)
+        //{
+        //    // 포켓몬들을 배열로 순회해서 콘솔창에 보여주고 IsDead가 true인 포켓몬 선택하면 로그 띄우고 다시 선택
+        //    DrawChangeMenu(buffer);
+        //}
 
         buffer.WriteTextCentered(25, _currentLog, ConsoleColor.White);
     }
 
+    //private void DrawMenu(ScreenBuffer buffer)
+    //{
+    //    
+    //}
+
+    //private void DrawChangeMenu(ScreenBuffer buffer)
+    //{
+        
+    //}
+
+    // 마지막에 취소를 누르면 선택하면 _currentState를 BattleState.Menu로 변경함
     private void DrawSkillMenu(ScreenBuffer buffer)
     {
         int x = 35; // 스킬 목록이 그려질 X 좌표 (포켓몬 아트 옆)
@@ -243,15 +263,14 @@ class BattleScene : Scene
             // 스킬 이름과 위력 출력
             buffer.WriteText(x, y + i, $"{prefix}{i + 1}. {skill.Name} (ATK: {skill.PowerRate})", color);
         }
-
-        buffer.WriteText(x, y + 4, "=====================", ConsoleColor.Gray);
+        buffer.WriteText(x, y + 5, "=====================", ConsoleColor.Gray);
     }
 
     // bool isPlayer는 패턴 매칭으로 변경 예정 (테스트용)
     private void DrawPokemonInfo(ScreenBuffer buffer, Pokemon mon, bool isPlayer)
     {
         int x = isPlayer ? 5 : 45; // 플레이어는 왼쪽, 적은 오른쪽에 배치
-        int y = isPlayer ? 15 : 2;
+        int y = isPlayer ? 16 : 1;
 
         buffer.WriteText(x, y, $"[{mon.Name}] {mon.CurrentHp}/{mon.MaxHp}", isPlayer ? ConsoleColor.Cyan : ConsoleColor.Red);
         buffer.WriteText(x, y + 1, " /\\_/\\");
@@ -262,7 +281,9 @@ class BattleScene : Scene
 
 public enum BattleState
 {
-    SelectAction,   
+    Menu,
+    SelectAction,
+    ChangeAction,
     PlayerAttack,   
     EnemyAttack,    
     ChangePokemon,

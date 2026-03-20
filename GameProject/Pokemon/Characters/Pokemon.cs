@@ -65,6 +65,12 @@
         }
     }
 
+    public void Heal()
+    {
+        CurrentHp = MaxHp;
+        IsDead = false;
+    }
+
     // 테스트용 스킬 할당
     public void GetSkills(Skill skill1, Skill skill2, Skill skill3, Skill skill4)
     {
