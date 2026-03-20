@@ -42,7 +42,7 @@ public class PlayScene : Scene
         npc = new Trainer(this, 29, 4, "NPC1");
         AddGameObject(npc);
 
-        healer = new Healer(this, 2, 11, "Healer");
+        healer = new Healer(this, 1, 11, "Healer");
         AddGameObject(healer);
     }
 
