@@ -30,6 +30,9 @@ public class PlayScene : Scene
             Pokemon pokemon2 = new Pokemon("이상해씨", PokemonType.Grass, 20, 3, 3, 2);
             pokemon2.GetSkills(SkillChart.grasses[0], SkillChart.grasses[1], SkillChart.normals[0], SkillChart.normals[1]);
             player.GetPokemon1(pokemon2);
+            Pokemon pokemon3 = new Pokemon("파이리1", PokemonType.FIre, 20, 10, 3, 3);
+            pokemon3.GetSkills(SkillChart.fires[2], SkillChart.fires[1], SkillChart.normals[2], SkillChart.normals[1]);
+            player.GetPokemon2(pokemon3);
         }
         AddGameObject(player);
 

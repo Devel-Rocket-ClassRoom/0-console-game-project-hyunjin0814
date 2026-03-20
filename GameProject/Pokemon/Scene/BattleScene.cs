@@ -6,12 +6,15 @@ class BattleScene : Scene
 {
     private Player player;
     private Trainer enemy;
-    private BattleState _currentState = BattleState.SelectAction;
+    private BattleState _currentState = BattleState.Menu;
     private BattleState _previousState;
+    private int _selectedMenuIndex = 0;
     private int _selectedSkillIndex = 0;
+    private int _selectedChangeIndex = 0;
     private int _playerPokemonIndex = 0;
     private int _enemyPokemonIndex = 0;
     private string _currentLog = string.Empty;
+    private string[] actions = { "스킬 사용", "포켓몬 교체", "아이템 사용" };
 
     public event GameAction ReturnRequested;
 
@@ -32,7 +35,7 @@ class BattleScene : Scene
         pokemon3.GetSkills(SkillChart.fires[0], SkillChart.fires[1], SkillChart.normals[0], SkillChart.normals[1]);
         enemy.GetPokemon1(pokemon3);
 
-        _currentState = BattleState.SelectAction;
+        _currentState = BattleState.Menu;
     }
 
     public override void Unload()
@@ -44,8 +47,14 @@ class BattleScene : Scene
     {
         switch (_currentState)
         {
-            case BattleState.SelectAction:
+            case BattleState.Menu:
                 HandleInput();
+                break;
+            case BattleState.SelectAction:
+                HandleSkillInput();
+                break;
+            case BattleState.ChangeAction:
+                HandleChangeInput();
                 break;
 
             case BattleState.PlayerAttack:
@@ -64,10 +73,8 @@ class BattleScene : Scene
 
 
     // 선택지 인덱스 0~3으로 조정
-    private void HandleInput()
+    private void HandleSkillInput()
     {
-        _currentLog = "무엇을 할까?";
-
         if (Input.IsKeyDown(ConsoleKey.UpArrow))
         {
             _selectedSkillIndex = Math.Max(0, _selectedSkillIndex - 1);
@@ -78,7 +85,66 @@ class BattleScene : Scene
         }
         if (Input.IsKeyDown(ConsoleKey.Enter))
         {
-            ExecutePlayerTurn();
+            if(_selectedSkillIndex == 4)
+            {
+                _currentState = BattleState.Menu;
+            }
+            else
+            {
+                ExecutePlayerTurn();
+            }
+        }
+    }
+
+    private void HandleChangeInput()
+    {
+        if (Input.IsKeyDown(ConsoleKey.UpArrow))
+        {
+            _selectedChangeIndex = Math.Max(0, _selectedSkillIndex - 1);
+        }
+        if (Input.IsKeyDown(ConsoleKey.DownArrow))
+        {
+            _selectedChangeIndex = Math.Min(3, _selectedSkillIndex + 1);
+        }
+        if (Input.IsKeyDown(ConsoleKey.Enter))
+        {
+            if (_selectedChangeIndex == 3)
+            {
+                _currentState = BattleState.Menu;
+            }
+            else
+            {
+                _currentState = BattleState.ChangePokemon;
+            }
+        }
+    }
+
+    private void HandleInput()
+    {
+        _currentLog = "무엇을 할까?";
+
+        if (Input.IsKeyDown(ConsoleKey.UpArrow))
+        {
+            _selectedMenuIndex = Math.Max(0, _selectedMenuIndex - 1);
+        }
+        if (Input.IsKeyDown(ConsoleKey.DownArrow))
+        {
+            _selectedMenuIndex = Math.Min(2, _selectedMenuIndex + 1);
+        }
+        if (Input.IsKeyDown(ConsoleKey.Enter))
+        {
+            switch (_selectedMenuIndex)
+            {
+                case 0:
+                    _currentState = BattleState.SelectAction;
+                    break;
+                case 1:
+                    _currentState = BattleState.ChangeAction;
+                    break;
+                    //case 2:
+                    //    HandleItemInput();
+                    //    break;
+            }
         }
     }
 
@@ -126,9 +192,9 @@ class BattleScene : Scene
 
                 if (anyAlive)
                 {
-                    _currentLog = $"{player.Pokemons[_enemyPokemonIndex].Name}이(가) 쓰러졌다! (교체)";
+                    _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}이(가) 쓰러졌다! (교체)";
                     _previousState = BattleState.EnemyAttack;
-                    _currentState = BattleState.ChangePokemon;
+                    _currentState = BattleState.ChangeAction;
                 }
                 else
                 {
@@ -138,7 +204,7 @@ class BattleScene : Scene
             }
             else
             {
-                _currentState = BattleState.SelectAction;
+                _currentState = BattleState.Menu;
             }
         }
         else if (_currentState == BattleState.ChangePokemon)
@@ -150,14 +216,15 @@ class BattleScene : Scene
             }
             else if (_previousState == BattleState.EnemyAttack)
             {
-                _playerPokemonIndex++;
+                HandleChangeInput();
+                _playerPokemonIndex = _selectedChangeIndex;
                 _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}이(가) 교체되어나왔다!";
             }
             _currentState = BattleState.SkipText;
         }
         else if (_currentState == BattleState.SkipText)
         {
-            _currentState = BattleState.SelectAction;
+            _currentState = BattleState.Menu;
         }
         else if (_currentState == BattleState.BattleEnd)
         {
@@ -204,28 +271,94 @@ class BattleScene : Scene
         {
             DrawSkillMenu(buffer);
         }
-        //else if (_currentState == BattleState.Menu)
-        //{
-        //    // 스킬 사용, 교체, 아이템 사용 메뉴들을 콘솔창에 보여주고 선택한 메뉴의 창을 띄움
-        //    DrawMenu(buffer);
-        //}
-        //else if (_currentState == BattleState.ChangePokemon)
-        //{
-        //    // 포켓몬들을 배열로 순회해서 콘솔창에 보여주고 IsDead가 true인 포켓몬 선택하면 로그 띄우고 다시 선택
-        //    DrawChangeMenu(buffer);
-        //}
+        else if (_currentState == BattleState.Menu)
+        {
+            // 스킬 사용, 교체, 아이템 사용 메뉴들을 콘솔창에 보여주고 선택한 메뉴의 창을 띄움
+            DrawMenu(buffer);
+        }
+        else if (_currentState == BattleState.ChangeAction)
+        {
+            // 포켓몬들을 배열로 순회해서 콘솔창에 보여주고 IsDead가 true인 포켓몬 선택하면 로그 띄우고 다시 선택
+            DrawChangeMenu(buffer);
+        }
 
         buffer.WriteTextCentered(25, _currentLog, ConsoleColor.White);
     }
 
-    //private void DrawMenu(ScreenBuffer buffer)
-    //{
-    //    
-    //}
+    private void DrawMenu(ScreenBuffer buffer)
+    {
+        int x = 35; // 스킬 목록이 그려질 X 좌표 (포켓몬 아트 옆)
+        int y = 10; // 스킬 목록이 시작될 Y 좌표
+
+        buffer.WriteText(x, y - 2, "==== [행동 선택] ====", ConsoleColor.Gray);
+
+        for (int i = 0; i < 3; i++)
+        {
+            string action = actions[i];
+
+            string prefix;
+            ConsoleColor color;
+
+            // 현재 선택된 인덱스인 경우 커서 표시 및 색상 변경
+            if (i == _selectedMenuIndex)
+            {
+                prefix = "> ";
+                color = ConsoleColor.Yellow;
+            }
+            else
+            {
+                prefix = "  ";
+                color = ConsoleColor.White;
+            }
+
+            // 스킬 이름과 위력 출력
+            buffer.WriteText(x, y + i, $"{prefix}{i + 1}. {action}", color);
+        }
+        buffer.WriteText(x, y + 3, "=====================", ConsoleColor.Gray);
+    }
+
+    private void DrawChangeMenu(ScreenBuffer buffer)
+    {
+        int x = 35; // 스킬 목록이 그려질 X 좌표 (포켓몬 아트 옆)
+        int y = 10; // 스킬 목록이 시작될 Y 좌표
+
+        buffer.WriteText(x, y - 2, "==== [교체 선택] ====", ConsoleColor.Gray);
+
+        for (int i = 0; i < 3; i++)
+        {
+            string pokemon = player.Pokemons[i].Name;
+
+            string prefix;
+            ConsoleColor color;
+
+            // 현재 선택된 인덱스인 경우 커서 표시 및 색상 변경
+            if (i == _selectedMenuIndex)
+            {
+                prefix = "> ";
+                color = ConsoleColor.Yellow;
+            }
+            else
+            {
+                prefix = "  ";
+                color = ConsoleColor.White;
+            }
+
+            // 스킬 이름과 위력 출력
+            if (player.Pokemons[i].IsDead)
+            {
+                buffer.WriteText(x, y + i, $"{prefix}{i + 1}. {pokemon} (전투 불능)", color);
+            }
+            else
+            {
+                buffer.WriteText(x, y + i, $"{prefix}{i + 1}. {pokemon}", color);
+            }
+        }
+        buffer.WriteText(x, y + 3, "=====================", ConsoleColor.Gray);
+    }
 
     //private void DrawChangeMenu(ScreenBuffer buffer)
     //{
-        
+
     //}
 
     // 마지막에 취소를 누르면 선택하면 _currentState를 BattleState.Menu로 변경함
@@ -262,6 +395,14 @@ class BattleScene : Scene
 
             // 스킬 이름과 위력 출력
             buffer.WriteText(x, y + i, $"{prefix}{i + 1}. {skill.Name} (ATK: {skill.PowerRate})", color);
+        }
+        if (_selectedSkillIndex == 4)
+        {
+            buffer.WriteText(x, y + 4, $"> 5. 취소", ConsoleColor.Yellow);
+        }
+        else
+        {
+            buffer.WriteText(x, y + 4, $"  5. 취소", ConsoleColor.White);
         }
         buffer.WriteText(x, y + 5, "=====================", ConsoleColor.Gray);
     }

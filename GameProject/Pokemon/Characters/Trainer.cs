@@ -45,4 +45,8 @@ public class Trainer : Character
     {
         pokemons[1] = pokemon;
     }
+    public void GetPokemon2(Pokemon pokemon)
+    {
+        pokemons[2] = pokemon;
+    }
 }
