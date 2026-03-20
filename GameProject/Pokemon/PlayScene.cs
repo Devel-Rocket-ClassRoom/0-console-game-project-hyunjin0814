@@ -16,7 +16,7 @@ public class PlayScene : Scene
         if (DataManager.hasData)
         {
             player = DataManager.LoadData();
-            player.isBattle = false;
+            player.ExitBattle();
         }
         else
         {

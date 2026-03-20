@@ -33,6 +33,16 @@ public class Trainer : GameObject
         buffer.SetCell(Position.X, Position.Y, 'T', ConsoleColor.Red);
     }
 
+    public void StartBattle()
+    {
+        isBattle = true;
+    }
+
+    public void ExitBattle()
+    {
+        isBattle = false;
+    }
+
     // 테스트용 코드
     public void GetPokemon(Pokemon pokemon)
     {

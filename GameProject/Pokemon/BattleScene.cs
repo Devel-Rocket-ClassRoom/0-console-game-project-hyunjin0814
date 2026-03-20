@@ -7,6 +7,8 @@ class BattleScene : Scene
     private Trainer enemy;
     private BattleState _currentState = BattleState.SelectAction;
     private int _selectedSkillIndex = 0;
+    private int _playerPokemonIndex = 0;
+    private int _enemyPokemonIndex = 0;
     private string _currentLog = string.Empty;
 
     public event GameAction ReturnRequested;
@@ -15,12 +17,12 @@ class BattleScene : Scene
     {
         // 저장된 정보를 통해 개체를 생성 혹은 불러와서 배틀 시작 하는 코드 작성 필요
         player = DataManager.LoadData();
-        player.isBattle = true;
+        player.StartBattle();
         AddGameObject(player);
 
         enemy = new Trainer(this, 29, 4, "NPC1");
+        enemy.StartBattle();
         AddGameObject(enemy);
-        enemy.isBattle = true;
         Pokemon pokemon2 = new Pokemon("파이리", PokemonType.FIre, 20, 4, 3, 3);
         pokemon2.GetSkills(SkillChart.fires[0], SkillChart.fires[1], SkillChart.normals[0], SkillChart.normals[1]);
         enemy.GetPokemon(pokemon2);
@@ -74,9 +76,14 @@ class BattleScene : Scene
     {
         if (_currentState == BattleState.PlayerAttack)
         {
-            if (enemy.Pokemons[0].IsDead)
+            if (enemy.Pokemons[_enemyPokemonIndex].IsDead)
             {
-                _currentLog = $"{enemy.Pokemons[0].Name}이(가) 쓰러졌다! 승리했다!";
+                _currentLog = $"{enemy.Pokemons[_enemyPokemonIndex].Name}이(가) 쓰러졌다! 승리했다!";
+
+                // 포켓몬이 추가로 있으면 다음 포켓몬을 내보내려한다는 로그 출력
+                // 플레이어에게 포켓몬 교체를 선택할 수 있게 해줘야함
+                // 모든 포켓몬이 IsDead가 true이면 그때 승리 후 종료
+
                 _currentState = BattleState.BattleEnd;
             }
             else
@@ -86,9 +93,13 @@ class BattleScene : Scene
         }
         else if (_currentState == BattleState.EnemyAttack)
         {
-            if (player.Pokemons[0].IsDead)
+            if (player.Pokemons[_playerPokemonIndex].IsDead)
             {
-                _currentLog = $"{player.Pokemons[0].Name}이(가) 쓰러졌다... 패배했다.";
+                _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}이(가) 쓰러졌다... 패배했다.";
+
+                // 교체할 포켓몬을 인덱스를 선택해서 배틀에 틀어감
+                // 모든 포켓몬이 IsDead가 true이면 그때 패배 후 종료
+
                 _currentState = BattleState.BattleEnd;
             }
             else
@@ -108,12 +119,12 @@ class BattleScene : Scene
     // 플레이어가 선택한 스킬의 데미지를 주고 출력
     private void ExecutePlayerTurn()
     {
-        int previousHp = enemy.Pokemons[0].CurrentHp;
-        var skill = player.Pokemons[0].skills[_selectedSkillIndex];
-        int damage = player.Pokemons[0].AttackTo(skill, enemy.Pokemons[0]);
-        enemy.Pokemons[0].TakeDamage(damage);
+        int previousHp = enemy.Pokemons[_enemyPokemonIndex].CurrentHp;
+        var skill = player.Pokemons[_playerPokemonIndex].skills[_selectedSkillIndex];
+        int damage = player.Pokemons[_playerPokemonIndex].AttackTo(skill, enemy.Pokemons[_enemyPokemonIndex]);
+        enemy.Pokemons[_enemyPokemonIndex].TakeDamage(damage);
 
-        _currentLog = $"{player.Pokemons[0].Name}의 {skill.Name}! {previousHp - enemy.Pokemons[0].CurrentHp}의 피해!";
+        _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}의 {skill.Name}! {previousHp - enemy.Pokemons[_enemyPokemonIndex].CurrentHp}의 피해!";
         _currentState = BattleState.PlayerAttack;
     }
 
@@ -121,12 +132,12 @@ class BattleScene : Scene
     private void ExecuteEnemyTurn()
     {
         Random rand = new Random();
-        int previousHp = player.Pokemons[0].CurrentHp;
-        var skill = enemy.Pokemons[0].skills[rand.Next(0, 4)];
-        int damage = enemy.Pokemons[0].AttackTo(skill, player.Pokemons[0]);
-        player.Pokemons[0].TakeDamage(damage);
+        int previousHp = player.Pokemons[_playerPokemonIndex].CurrentHp;
+        var skill = enemy.Pokemons[_enemyPokemonIndex].skills[rand.Next(0, 4)];
+        int damage = enemy.Pokemons[_enemyPokemonIndex].AttackTo(skill, player.Pokemons[_playerPokemonIndex]);
+        player.Pokemons[_playerPokemonIndex].TakeDamage(damage);
 
-        _currentLog = $"적 {enemy.Pokemons[0].Name}의 {skill.Name}! {previousHp - player.Pokemons[0].CurrentHp}의 피해!";
+        _currentLog = $"적 {enemy.Pokemons[_enemyPokemonIndex].Name}의 {skill.Name}! {previousHp - player.Pokemons[_playerPokemonIndex].CurrentHp}의 피해!";
         _currentState = BattleState.EnemyAttack;
     }
 
@@ -134,8 +145,8 @@ class BattleScene : Scene
     {
         DrawGameObjects(buffer);
 
-        DrawPokemonInfo(buffer, player.Pokemons[0], isPlayer: true);
-        DrawPokemonInfo(buffer, enemy.Pokemons[0], isPlayer: false);
+        DrawPokemonInfo(buffer, player.Pokemons[_playerPokemonIndex], isPlayer: true);
+        DrawPokemonInfo(buffer, enemy.Pokemons[_enemyPokemonIndex], isPlayer: false);
 
         if (_currentState == BattleState.SelectAction)
         {
@@ -152,7 +163,7 @@ class BattleScene : Scene
 
         buffer.WriteText(x, y - 2, "==== [기술 선택] ====", ConsoleColor.Gray);
 
-        var myMon = player.Pokemons[0];
+        var myMon = player.Pokemons[_playerPokemonIndex];
 
         // 4개의 스킬 루프
         for (int i = 0; i < 4; i++)
