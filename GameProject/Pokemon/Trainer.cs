@@ -26,6 +26,10 @@ public class Trainer : GameObject
 
     public override void Draw(ScreenBuffer buffer)
     {
+        if (isBattle)
+        {
+            return;
+        }
         buffer.SetCell(Position.X, Position.Y, 'T', ConsoleColor.Red);
     }
 

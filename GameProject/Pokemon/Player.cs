@@ -48,6 +48,10 @@ public class Player : Trainer
 
     public override void Draw(ScreenBuffer buffer)
     {
+        if (isBattle)
+        {
+            return;
+        }
         buffer.SetCell(Position.X, Position.Y, '@', ConsoleColor.Green);
     }
 

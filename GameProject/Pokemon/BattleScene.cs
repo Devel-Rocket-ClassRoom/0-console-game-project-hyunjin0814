@@ -51,9 +51,10 @@ class BattleScene : Scene
                 break;
         }
 
-        if (Input.IsKeyDown(ConsoleKey.Escape)) ReturnRequested?.Invoke();
+        //if (Input.IsKeyDown(ConsoleKey.Escape)) ReturnRequested?.Invoke();
     }
 
+    // 선택지 인덱스 0~3으로 조정
     private void HandleInput()
     {
         if (Input.IsKeyDown(ConsoleKey.UpArrow))
@@ -70,17 +71,7 @@ class BattleScene : Scene
         }
     }
 
-    private void ExecutePlayerTurn()
-    {
-        int previousHp = enemy.Pokemons[0].CurrentHp;
-        var skill = player.Pokemons[0].skills[_selectedSkillIndex];
-        int damage = player.Pokemons[0].AttackTo(skill, enemy.Pokemons[0]);
-        enemy.Pokemons[0].TakeDamage(damage);
-
-        _currentLog = $"{player.Pokemons[0].Name}의 {skill.Name}! {previousHp - enemy.Pokemons[0].CurrentHp}의 피해!";
-        _currentState = BattleState.PlayerAttack;
-    }
-
+    // 해당 코드에서 현재 _currentState의 값을 보고 서로 턴을 주고 받음
     private void ProcessNextState()
     {
         if (_currentState == BattleState.PlayerAttack)
@@ -114,6 +105,19 @@ class BattleScene : Scene
         }
     }
 
+    // 플레이어가 선택한 스킬의 데미지를 주고 출력
+    private void ExecutePlayerTurn()
+    {
+        int previousHp = enemy.Pokemons[0].CurrentHp;
+        var skill = player.Pokemons[0].skills[_selectedSkillIndex];
+        int damage = player.Pokemons[0].AttackTo(skill, enemy.Pokemons[0]);
+        enemy.Pokemons[0].TakeDamage(damage);
+
+        _currentLog = $"{player.Pokemons[0].Name}의 {skill.Name}! {previousHp - enemy.Pokemons[0].CurrentHp}의 피해!";
+        _currentState = BattleState.PlayerAttack;
+    }
+
+    // 적이 랜덤으로 스킬을 사용하여 데미지를 받음
     private void ExecuteEnemyTurn()
     {
         Random rand = new Random();
@@ -164,7 +168,7 @@ class BattleScene : Scene
             if (i == _selectedSkillIndex)
             {
                 prefix = "> ";
-                color = ConsoleColor.Yellow; // 선택된 항목은 노란색!
+                color = ConsoleColor.Yellow;
             }
             else
             {
@@ -179,6 +183,7 @@ class BattleScene : Scene
         buffer.WriteText(x, y + 4, "=====================", ConsoleColor.Gray);
     }
 
+    // bool isPlayer는 패턴 매칭으로 변경 예정 (테스트용)
     private void DrawPokemonInfo(ScreenBuffer buffer, Pokemon mon, bool isPlayer)
     {
         int x = isPlayer ? 5 : 45; // 플레이어는 왼쪽, 적은 오른쪽에 배치
