@@ -17,8 +17,8 @@
 
 public enum PokemonType
 {
-    FIre,
     Water,
+    FIre,
     Grass,
     Normal
 }

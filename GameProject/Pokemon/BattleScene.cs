@@ -13,12 +13,10 @@ class BattleScene : Scene
 
     public override void Load()
     {
-        player = new Player(this, 29, 14, "Player");
-        AddGameObject(player);
+        // 저장된 정보를 통해 개체를 생성 혹은 불러와서 배틀 시작 하는 코드 작성 필요
+        player = DataManager.LoadData();
         player.isBattle = true;
-        Pokemon pokemon1 = new Pokemon("꼬부기", PokemonType.Water, 20, 3, 5, 2);
-        pokemon1.GetSkills(SkillChart.waters[0], SkillChart.waters[1], SkillChart.normals[0], SkillChart.normals[1]);
-        player.GetPokemon(pokemon1);
+        AddGameObject(player);
 
         enemy = new Trainer(this, 29, 4, "NPC1");
         AddGameObject(enemy);
@@ -101,6 +99,8 @@ class BattleScene : Scene
         }
         else if (_currentState == BattleState.BattleEnd)
         {
+            // 배틀을 종료하기 전에 플레이어와 상대의 정보를 갱신해주는 코드 작성 필요
+            DataManager.SaveData(player);
             ReturnRequested?.Invoke();
         }
     }
