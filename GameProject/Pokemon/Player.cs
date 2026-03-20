@@ -2,6 +2,9 @@
 
 public class Player : Trainer
 {
+    private (int X, int Y) _previousPosition;
+
+    public (int X, int Y) PreviousPosition => _previousPosition;
     public Player(Scene scene, int startX, int startY, string name) : base(scene, startX, startY, name)
     {
         _name = name;
@@ -44,6 +47,16 @@ public class Player : Trainer
                 _position.X = 58;
             }
         }
+    }
+
+    public void PositionSave()
+    {
+        _previousPosition = Position;
+    }
+
+    public void PositionLoad()
+    {
+        _position = PreviousPosition;
     }
 
     public override void Draw(ScreenBuffer buffer)

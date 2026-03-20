@@ -23,7 +23,10 @@ public class PlayScene : Scene
             player = new Player(this, 29, 14, "Player");
             Pokemon pokemon1 = new Pokemon("꼬부기", PokemonType.Water, 20, 3, 5, 2);
             pokemon1.GetSkills(SkillChart.waters[0], SkillChart.waters[1], SkillChart.normals[0], SkillChart.normals[1]);
-            player.GetPokemon(pokemon1);
+            player.GetPokemon0(pokemon1);
+            Pokemon pokemon2 = new Pokemon("이상해씨", PokemonType.Grass, 20, 3, 3, 2);
+            pokemon2.GetSkills(SkillChart.grasses[0], SkillChart.grasses[1], SkillChart.normals[0], SkillChart.normals[1]);
+            player.GetPokemon1(pokemon2);
         }
         AddGameObject(player);
 
@@ -42,13 +45,24 @@ public class PlayScene : Scene
     public override void Update(float deltaTime)
     {
         UpdateGameObjects(deltaTime);
-        // 임시로 작성된 배틀씬 전환 테스트 코드
-        if (Input.IsKeyDown(ConsoleKey.Enter))
+
+        if (npc.IsInBounds(player.Position.X, player.Position.Y))
         {
-            DataManager.SaveData(player);
-            Thread.Sleep(1000);
-            BattleRequested?.Invoke();
+            player.PositionSave();
+
+            // 임시로 작성된 배틀씬 전환 테스트 코드
+            if (Input.IsKeyDown(ConsoleKey.Enter))
+            {
+                DataManager.SaveData(player);
+                Thread.Sleep(1000);
+                BattleRequested?.Invoke();
+            }
         }
+        else if (npc.Position == player.Position)
+        {
+            player.PositionLoad();
+        }
+
         if (Input.IsKeyDown(ConsoleKey.Escape))
         {
             PlayAgainRequested?.Invoke();
