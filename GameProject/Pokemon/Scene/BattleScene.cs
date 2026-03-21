@@ -6,24 +6,30 @@ class BattleScene : Scene
 {
     private Player player;
     private Trainer enemy;
+
     private BattleState _currentState = BattleState.Menu;
     private BattleState _previousState;
+
     private int _selectedMenuIndex = 0;
     private int _selectedSkillIndex = 0;
     private int _selectedChangeIndex = 0;
+
     private int _playerPokemonIndex = 0;
     private int _enemyPokemonIndex = 0;
+
     private string _currentLog = string.Empty;
     private string[] actions = { "스킬 사용", "포켓몬 교체", "아이템 사용" };
+
     public event GameAction ReturnRequested;
 
     public override void Load()
     {
-        // 저장된 정보를 통해 개체를 생성 혹은 불러와서 배틀 시작 하는 코드 작성 필요
+        // 저장된 정보를 불러와서 배틀 시작
         player = DataManager.LoadData();
         player.StartBattle();
         AddGameObject(player);
 
+        // 임시로 적 정보 지정
         enemy = new Trainer(this, 29, 4, "NPC1");
         enemy.StartBattle();
         AddGameObject(enemy);
@@ -46,7 +52,7 @@ class BattleScene : Scene
     {
         switch (_currentState)
         {
-            case BattleState.Menu: // 메인 메뉴 (스킬, 교체, 아이템)
+            case BattleState.Menu: // 메인 메뉴
                 UpdateCursor(ref _selectedMenuIndex, actions.Length - 1, () => {
                     if (_selectedMenuIndex == 0) _currentState = BattleState.SelectAction;
                     else if (_selectedMenuIndex == 1) _currentState = BattleState.ChangeAction;
@@ -54,34 +60,46 @@ class BattleScene : Scene
                 break;
 
             case BattleState.SelectAction: // 스킬 선택 메뉴
-                                           // 기술 4개 + 취소(인덱스 4) 총 5개이므로 max는 4
                 UpdateCursor(ref _selectedSkillIndex, 4, () => {
                     if (_selectedSkillIndex == 4) _currentState = BattleState.Menu;
                     else ExecutePlayerTurn();
-                }, () => _currentState = BattleState.Menu); // ESC 누르면 메뉴로
+                }, () => _currentState = BattleState.Menu);
                 break;
 
             case BattleState.ChangeAction: // 포켓몬 교체 메뉴
-                                           // 플레이어 포켓몬 3마리 + 취소 버튼 = 총 4개이므로 max는 3
-                UpdateCursor(ref _selectedChangeIndex, 3, () => {
-                    if (_selectedChangeIndex == 3) _currentState = BattleState.Menu;
+                bool isForcedChange = player.Pokemons[_playerPokemonIndex].IsDead;
+
+                UpdateCursor(ref _selectedChangeIndex, 3, () =>
+                {
+                    if (_selectedChangeIndex == 3)
+                    {
+                        if (isForcedChange)
+                        {
+                            _currentLog = "포켓몬을 교체해야합니다!";
+                        }
+                        else
+                        {
+                            _currentState = BattleState.Menu;
+                        }
+                    }
                     else TrySwitchPokemon(_selectedChangeIndex);
-                }, () => _currentState = BattleState.Menu);
+                }
+                , () => { if (!isForcedChange) _currentState = BattleState.Menu; }
+                );
                 break;
 
             case BattleState.PlayerAttack:
             case BattleState.EnemyAttack:
             case BattleState.BattleEnd:
-            case BattleState.ChangePokemon:
+            case BattleState.EnemySwitchPokemon:
             case BattleState.SkipText:
                 if (Input.IsKeyDown(ConsoleKey.Enter))
                     ProcessNextState();
                 break;
         }
-
-        //if (Input.IsKeyDown(ConsoleKey.Escape)) ReturnRequested?.Invoke();
     }
 
+    // 메뉴 선택창과 커서 출력
     private void UpdateCursor(ref int index, int max, Action onConfirm, Action onCancel = null)
     {
         if (Input.IsKeyDown(ConsoleKey.UpArrow))
@@ -91,7 +109,7 @@ class BattleScene : Scene
 
         if (Input.IsKeyDown(ConsoleKey.Enter))
         {
-            onConfirm?.Invoke(); // 전달받은 "보따리" 코드를 실행
+            onConfirm?.Invoke();
         }
 
         if (Input.IsKeyDown(ConsoleKey.Escape))
@@ -119,12 +137,16 @@ class BattleScene : Scene
             return;
         }
 
-        // 3. 교체 성공 시 로직
+        bool wasForced = player.Pokemons[_playerPokemonIndex].IsDead;
+
+        // 3. 교체 성공
         _playerPokemonIndex = targetIndex;
         _currentLog = $"{targetMon.Name}(으)로 교체했다!";
 
-        // 교체 후에는 적이 공격하도록 턴을 넘김
-        ExecuteEnemyTurn();
+        // 4. 강제 교체면 다음 행동 선택, 선택 교체면 상대 공격 턴
+        _currentState = BattleState.SkipText;
+
+        _previousState = wasForced ? BattleState.EnemyAttack : BattleState.ChangeAction;
     }
 
     // 해당 코드에서 현재 _currentState의 값을 보고 서로 턴을 주고 받음
@@ -133,15 +155,15 @@ class BattleScene : Scene
         switch (_currentState)
         {
             case BattleState.PlayerAttack:
-                // 적이 죽었는지 확인
+                // 현재 적의 포켓몬 죽었는지 확인
                 if (enemy.Pokemons[_enemyPokemonIndex].IsDead)
                 {
-                    // 1. 다음 적 포켓몬이 있는지 체크
+                    // 다음 적 포켓몬이 있는지 체크
                     if (_enemyPokemonIndex + 1 < enemy.Pokemons.Length && enemy.Pokemons[_enemyPokemonIndex + 1] != null)
                     {
-                        _previousState = BattleState.PlayerAttack; // '적이 죽어서 교체됨'임을 기록
+                        _previousState = BattleState.PlayerAttack; // 플레이어 공격으로 교체됐음을 기록
                         _currentLog = $"적 {enemy.Pokemons[_enemyPokemonIndex].Name}(이)가 쓰러졌다! 다음 포켓몬이 나옵니다.";
-                        _currentState = BattleState.ChangePokemon; // 인덱스를 실제로 넘기기 전 대기 상태
+                        _currentState = BattleState.EnemySwitchPokemon; // 인덱스를 넘기기 전 대기 상태
                     }
                     else
                     {
@@ -156,17 +178,17 @@ class BattleScene : Scene
                 break;
 
             case BattleState.EnemyAttack:
-                // 플레이어가 죽었는지 확인
+                // 현재 플레이어의 포켓몬 죽었는지 확인
                 if (player.Pokemons[_playerPokemonIndex].IsDead)
                 {
-                    // 2. 다른 살아있는 포켓몬이 있는지 체크
+                    // 다른 살아있는 포켓몬이 있는지 체크
                     bool hasAlivePokemon = player.Pokemons.Any(m => m != null && !m.IsDead);
+
                     if (hasAlivePokemon)
                     {
-                        _previousState = BattleState.EnemyAttack; // '내가 죽어서 교체해야 함' 기록
+                        _previousState = BattleState.EnemyAttack; // 적의 공격으로 교체됐음을 기록
                         _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}(이)가 쓰러졌다! 교체할 포켓몬을 선택하세요.";
-                        // 바로 교체 창(ChangeAction)으로 보냅니다.
-                        _currentState = BattleState.ChangeAction;
+                        _currentState = BattleState.ChangeAction; // 인덱스 넘기기 전 대기 상태
                     }
                     else
                     {
@@ -181,12 +203,25 @@ class BattleScene : Scene
                 }
                 break;
 
-            case BattleState.ChangePokemon:
-                // 적 포켓몬 교체 연출(SkipText 등) 직후 실행되는 로직
+            case BattleState.EnemySwitchPokemon:
+                // 적 포켓몬 교체 연출 직후 실행
                 if (_previousState == BattleState.PlayerAttack)
                 {
-                    _enemyPokemonIndex++; // 인덱스 증가
+                    _enemyPokemonIndex++; // 적 다음 포켓몬으로 교체
                     _currentLog = $"상대는 {enemy.Pokemons[_enemyPokemonIndex].Name}(을)를 꺼냈다! 무엇을 할까?";
+                    _currentState = BattleState.Menu;
+                }
+                break;
+
+            case BattleState.SkipText:
+                // 텍스트 스킵용 로직
+                if (_previousState == BattleState.ChangeAction)
+                {
+                    ExecuteEnemyTurn();
+                }
+                else
+                {
+                    _currentLog = "무엇을 할까?";
                     _currentState = BattleState.Menu;
                 }
                 break;
@@ -196,87 +231,6 @@ class BattleScene : Scene
                 ReturnRequested?.Invoke();
                 break;
         }
-        //if (_currentState == BattleState.PlayerAttack)
-        //{
-        //    if (enemy.Pokemons[_enemyPokemonIndex].IsDead)
-        //    {
-        //        if (enemy.Pokemons[_enemyPokemonIndex + 1] != null)
-        //        {
-        //            _currentLog = $"{enemy.Pokemons[_enemyPokemonIndex].Name}이(가) 쓰러졌다! (교체)";
-        //            _previousState = BattleState.PlayerAttack;
-        //            _currentState = BattleState.ChangePokemon;
-        //        }
-        //        else
-        //        {
-        //            _currentLog = $"{enemy.Pokemons[_enemyPokemonIndex].Name}이(가) 쓰러졌다! 승리했다!";
-        //            _currentState = BattleState.BattleEnd;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        ExecuteEnemyTurn();
-        //    }
-        //}
-        //else if (_currentState == BattleState.EnemyAttack)
-        //{
-        //    if (player.Pokemons[_playerPokemonIndex].IsDead)
-        //    {
-        //        bool anyAlive = false;
-        //        foreach (var myMon in player.Pokemons)
-        //        {
-        //            if (myMon == null)
-        //            {
-        //                break;
-        //            }
-        //            if (!myMon.IsDead)
-        //            {
-        //                anyAlive = true;
-        //                break;
-        //            }
-        //        }
-
-        //        if (anyAlive)
-        //        {
-        //            _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}이(가) 쓰러졌다! (교체)";
-        //            _previousState = BattleState.EnemyAttack;
-        //            _currentState = BattleState.ChangeAction;
-        //        }
-        //        else
-        //        {
-        //            _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}이(가) 쓰러졌다... 패배했다.";
-        //            _currentState = BattleState.BattleEnd;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _currentState = BattleState.Menu;
-        //    }
-        //}
-        //else if (_currentState == BattleState.ChangePokemon)
-        //{
-        //    if (_previousState == BattleState.PlayerAttack)
-        //    {
-        //        _enemyPokemonIndex++;
-        //        _currentLog = $"{enemy.Pokemons[_enemyPokemonIndex].Name}이(가) 교체되어나왔다!";
-        //    }
-        //    else if (_previousState == BattleState.EnemyAttack)
-        //    {
-        //        HandleChangeInput();
-        //        _playerPokemonIndex = _selectedChangeIndex;
-        //        _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}이(가) 교체되어나왔다!";
-        //    }
-        //    _currentState = BattleState.SkipText;
-        //}
-        //else if (_currentState == BattleState.SkipText)
-        //{
-        //    _currentState = BattleState.Menu;
-        //}
-        //else if (_currentState == BattleState.BattleEnd)
-        //{
-        //    // 배틀을 종료하기 전에 플레이어와 상대의 정보를 갱신해주는 코드 작성 필요
-        //    DataManager.SaveData(player);
-        //    ReturnRequested?.Invoke();
-        //}
     }
 
     // 플레이어가 선택한 스킬의 데미지를 주고 출력
@@ -390,7 +344,7 @@ public enum BattleState
     ChangeAction,
     PlayerAttack,   
     EnemyAttack,    
-    ChangePokemon,
+    EnemySwitchPokemon,
     SkipText,
     BattleEnd       
 }
