@@ -20,6 +20,8 @@ class BattleScene : Scene
     private string _currentLog = string.Empty;
     private string[] actions = { "스킬 사용", "포켓몬 교체", "아이템 사용" };
 
+    private bool _isFirstAttackerFinished = false;
+
     public event GameAction ReturnRequested;
 
     public override void Load()
@@ -62,7 +64,20 @@ class BattleScene : Scene
             case BattleState.SelectAction: // 스킬 선택 메뉴
                 UpdateCursor(ref _selectedSkillIndex, 4, () => {
                     if (_selectedSkillIndex == 4) _currentState = BattleState.Menu;
-                    else ExecutePlayerTurn();
+                    else
+                    {
+                        _isFirstAttackerFinished = false;
+
+                        if (player.Pokemons[_playerPokemonIndex].Speed >= enemy.Pokemons[_enemyPokemonIndex].Speed)
+                        {
+                            ExecutePlayerTurn();
+                        }
+                        else
+                        {
+                            ExecuteEnemyTurn();
+                        }
+                    }
+                    
                 }, () => _currentState = BattleState.Menu);
                 break;
 
@@ -146,6 +161,7 @@ class BattleScene : Scene
         // 4. 강제 교체면 다음 행동 선택, 선택 교체면 상대 공격 턴
         _currentState = BattleState.SkipText;
 
+        _isFirstAttackerFinished = !wasForced;
         _previousState = wasForced ? BattleState.EnemyAttack : BattleState.ChangeAction;
     }
 
@@ -173,7 +189,16 @@ class BattleScene : Scene
                 }
                 else
                 {
-                    ExecuteEnemyTurn(); // 적이 살아있으면 바로 반격
+                    if (!_isFirstAttackerFinished)
+                    {
+                        _isFirstAttackerFinished = true;
+                        ExecuteEnemyTurn();
+                    }
+                    else
+                    {
+                        _currentState = BattleState.Menu;
+                        _currentLog = "무엇을 할까?";
+                    }
                 }
                 break;
 
@@ -198,8 +223,16 @@ class BattleScene : Scene
                 }
                 else
                 {
-                    _currentLog = "무엇을 할까?";
-                    _currentState = BattleState.Menu;
+                    if (!_isFirstAttackerFinished)
+                    {
+                        _isFirstAttackerFinished = true;
+                        ExecutePlayerTurn();
+                    }    
+                    else
+                    {
+                        _currentLog = "무엇을 할까?";
+                        _currentState = BattleState.Menu;
+                    }
                 }
                 break;
 
