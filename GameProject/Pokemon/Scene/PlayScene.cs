@@ -1,5 +1,7 @@
-﻿using System;
-using Framework.Engine;
+﻿using Framework.Engine;
+using System;
+using System.Collections.Generic;
+using System.Reflection.PortableExecutable;
 
 public class PlayScene : Scene
 {
@@ -8,14 +10,19 @@ public class PlayScene : Scene
     private Trainer npc;
     private Healer healer;
     private string _currentLog = string.Empty;
-    //private PlayerState _playerState;
+
+    private PlayerState _playerState = PlayerState.Move;
+    private int _selectedChoiceIndex = 0;
+    private string[] _choices = { "예", "아니오" };
+    private enum InteractionTarget { None, NPC, Healer }
+    private InteractionTarget _currentTarget = InteractionTarget.None;
 
     public event GameAction BattleRequested;
     public event GameAction PlayAgainRequested;
 
     public override void Load()
     {
-        // 만약 저장된 정보가 있으면 불러오고 개체를 새로 생성하지 않는 코드 작성 필요
+        // 만약 저장된 정보가 있으면 불러오고 개체를 새로 생성하지 않음
         if (DataManager.hasData)
         {
             player = DataManager.LoadData();
@@ -44,6 +51,8 @@ public class PlayScene : Scene
 
         healer = new Healer(this, 1, 11, "Healer");
         AddGameObject(healer);
+
+        _playerState = PlayerState.Move;
     }
 
     public override void Unload()
@@ -53,57 +62,26 @@ public class PlayScene : Scene
 
     public override void Update(float deltaTime)
     {
-        UpdateGameObjects(deltaTime);
-
-        // 플레이어의 경계에 있는 개체의 정보를 저장하고 그 개체에 맞춰서 하는 행동을 다르게 하면 좋을듯 (다운캐스팅, 패턴매칭 활용)
-        if (player.IsInBounds(npc.Position.X, npc.Position.Y))
+        switch (_playerState)
         {
-            player.PositionSave();
+            case PlayerState.Move:
+                player.PositionSave();
+                UpdateGameObjects(deltaTime);
+                UpdateMove(deltaTime);
+                break;
 
-            // 임시로 작성된 배틀씬 전환 테스트 코드
-            if (Input.IsKeyDown(ConsoleKey.Enter))
-            {
-                DataManager.SaveData(player);
-                Thread.Sleep(1000);
-                BattleRequested?.Invoke();
-            }
-        }
-        else if (npc.Position == player.Position)
-        {
-            player.PositionLoad();
-        }
+            case PlayerState.SelectAction:
+                UpdateSelection();
+                break;
 
-        if (player.IsInBounds(healer.Position.X, healer.Position.Y))
-        {
-            player.PositionSave();
-
-            // 임시로 작성된 회복 코드
-            if (Input.IsKeyDown(ConsoleKey.Enter))
-            {
-                for (int i = 0; i < player.Pokemons.Length; i++)
+            case PlayerState.SkipText:
+                if (Input.IsKeyDown(ConsoleKey.Enter))
                 {
-                    player.Pokemons[i]?.Heal();
+                    _currentLog = string.Empty;
+                    _playerState = PlayerState.Move;
                 }
-                _currentLog = "포켓몬들이 건강해졌다!";
-                //_playerState = PlayerState.SkipText;
-            }
+                break;
         }
-        else if (healer.Position == player.Position)
-        {
-            player.PositionLoad();
-        }
-
-        //switch (_playerState)
-        //{
-        //    case PlayerState.SelectAction:
-        //        break;
-
-        //    case PlayerState.SkipText:
-        //    case PlayerState.Move:
-        //        if (Input.IsKeyDown(ConsoleKey.Enter))
-        //            ProcessNextState();
-        //        break;
-        //}
 
         if (Input.IsKeyDown(ConsoleKey.Escape))
         {
@@ -111,29 +89,125 @@ public class PlayScene : Scene
         }
     }
 
-    //private void ProcessNextState()
-    //{
-    //    if (_playerState == PlayerState.SelectAction)
-    //    {
+    private void UpdateMove(float deltaTime)
+    {
+        // 위치 중복 방지
+        if (player.Position == npc.Position || player.Position == healer.Position)
+        {
+            player.PositionLoad();
+            return;
+        }
 
-    //    }
-    //    else if (_playerState == PlayerState.SkipText)
-    //    {
-    //        if (Input.IsKeyDown(ConsoleKey.Enter))
-    //        {
-    //            _playerState = PlayerState.Move;
-    //        }
-    //    }
-    //    else
-    //    {
-    //        _currentLog = string.Empty;
-    //    }
-    //}
+        // 상호작용 확인
+        if (Input.IsKeyDown(ConsoleKey.Enter))
+        {
+            // NPC 상호작용
+            if (player.IsInBounds(npc.Position.X, npc.Position.Y))
+            {
+                _playerState = PlayerState.SelectAction;
+                _currentTarget = InteractionTarget.NPC;
+                _currentLog = "전투를 시작하시겠습니까?";
+                _selectedChoiceIndex = 0;
+            }
+            // 힐러 상호작용
+            else if (player.IsInBounds(healer.Position.X, healer.Position.Y))
+            {
+                _playerState = PlayerState.SelectAction;
+                _currentTarget = InteractionTarget.Healer;
+                _currentLog = "체력을 회복하시겠습니까?";
+                _selectedChoiceIndex = 0;
+            }
+        }
+    }
+
+    // 상호작용 확인 (Enter 누를 때)
+    private void OnInteractionConfirm()
+    {
+        // 아니오 선택
+        if (_selectedChoiceIndex != 0) 
+        {
+            _currentLog = string.Empty;
+            _playerState = PlayerState.Move;
+            return;
+        }
+
+        // 예 선택
+        if (_currentTarget == InteractionTarget.NPC) // Trainer NPC인 경우
+        {
+            DataManager.SaveData(player);
+            BattleRequested?.Invoke();
+        }
+        else if (_currentTarget == InteractionTarget.Healer) // Healer NPC인 경우
+        {
+            foreach (var p in player.Pokemons) p?.Heal();
+            _currentLog = "포켓몬들이 건강해졌다!";
+            _playerState = PlayerState.SkipText;
+        }
+    }
+
+    // 상호작용 취소 (ESC 누를 때)
+    private void CancelSelection()
+    {
+        _currentLog = string.Empty;
+        _playerState = PlayerState.Move;
+    }
+
+    // 선택지 상태 갱신 로직
+    private void UpdateSelection()
+    {
+        UpdateCursor(ref _selectedChoiceIndex, _choices.Length - 1, OnInteractionConfirm, CancelSelection);
+    }
+
+    // 커서 갱신 로직
+    private void UpdateCursor(ref int index, int max, Action onConfirm, Action onCancel = null)
+    {
+        if (Input.IsKeyDown(ConsoleKey.UpArrow))
+            index = Math.Max(0, index - 1);
+        if (Input.IsKeyDown(ConsoleKey.DownArrow))
+            index = Math.Min(max, index + 1);
+
+        if (Input.IsKeyDown(ConsoleKey.Enter))
+            onConfirm?.Invoke();
+
+        if (Input.IsKeyDown(ConsoleKey.Escape))
+            onCancel?.Invoke();
+    }
+
     public override void Draw(ScreenBuffer buffer)
     {
         DrawGameObjects(buffer);
 
         buffer.WriteText(65, 15, _currentLog, ConsoleColor.White);
+
+        if (_playerState == PlayerState.SelectAction)
+        {
+            DrawChoiceMenu(buffer);
+        }
+    }
+    
+    // 메뉴창 그리는 로직
+    private void DrawChoiceMenu(ScreenBuffer buffer)
+    {
+        int x = 65;
+        int y = 17;
+        for (int i = 0; i < _choices.Length; i++)
+        {
+            string prefix;
+            ConsoleColor color; 
+
+            // 선택되면 커서 "> "로 표시
+            if (i == _selectedChoiceIndex)
+            {
+                prefix = "> ";
+                color = ConsoleColor.Yellow;
+            }
+            else
+            {
+                prefix = "  ";
+                color = ConsoleColor.White;
+            }
+                buffer.WriteText(x, y + i, $"{prefix}{_choices[i]}", color);
+        }
     }
 }
 

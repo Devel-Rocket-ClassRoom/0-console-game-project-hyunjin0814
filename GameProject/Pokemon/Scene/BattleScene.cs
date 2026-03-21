@@ -329,8 +329,8 @@ class BattleScene : Scene
 
     private void DrawMenu(ScreenBuffer buffer, string header, string[] list, int selectedIndex)
     {
-        int x = 35; // 스킬 목록이 그려질 X 좌표 (포켓몬 아트 옆)
-        int y = 10; // 스킬 목록이 시작될 Y 좌표
+        int x = 35; // 목록이 그려질 X 좌표 (포켓몬 아트 옆)
+        int y = 10; // 목록이 시작될 Y 좌표
 
         buffer.WriteText(x, y - 2, $"==== [{header}] ====", ConsoleColor.Gray);
 
@@ -351,7 +351,6 @@ class BattleScene : Scene
                 color = ConsoleColor.White;
             }
 
-            // 스킬 이름과 위력 출력
             buffer.WriteText(x, y + i, $"{prefix}{i + 1}. {list[i]}", color);
         }
         buffer.WriteText(x, y + list.Length, "=====================", ConsoleColor.Gray);

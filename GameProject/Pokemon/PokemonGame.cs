@@ -6,7 +6,7 @@ public class PokemonGame : GameApp
 {
     private readonly SceneManager<Scene> _scenes = new SceneManager<Scene>();
 
-    public PokemonGame() : base(80, 30)
+    public PokemonGame() : base(90, 30)
     {
     }
 
