@@ -23,6 +23,7 @@ public class TitleScene : Scene
 
     public override void Draw(ScreenBuffer buffer)
     {
-        buffer.WriteTextCentered(15, "샘플 텍스트", ConsoleColor.Green);
+        buffer.WriteTextCentered(15, "[Tower Of Pokemon]", ConsoleColor.Blue);
+        buffer.WriteTextCentered(18, "Enter 키를 눌러서 시작하세요.", ConsoleColor.DarkCyan);
     }
 }

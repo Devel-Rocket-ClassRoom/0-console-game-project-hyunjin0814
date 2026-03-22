@@ -7,6 +7,7 @@ public class Character : GameObject
 
     protected string _name;
     public (int X, int Y) Position => _position;
+    public string Name => _name;
 
     public Character(Scene scene, int startX, int startY, string name) : base(scene)
     {

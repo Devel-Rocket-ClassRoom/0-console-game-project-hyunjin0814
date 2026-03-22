@@ -1,11 +1,9 @@
 ﻿using Framework.Engine;
-using System;
-using System.Drawing;
 
 class BattleScene : Scene
 {
     private Player player;
-    private Trainer enemy;
+    private Enemy enemy;
 
     private BattleState _currentState = BattleState.Menu;
     private BattleState _previousState;
@@ -31,16 +29,11 @@ class BattleScene : Scene
         player.StartBattle();
         AddGameObject(player);
 
-        // 임시로 적 정보 지정
-        enemy = new Trainer(this, 29, 4, "NPC1");
+        enemy = DataManager.LoadEnemyData();
         enemy.StartBattle();
         AddGameObject(enemy);
-        Pokemon pokemon2 = new Pokemon("파이리1", PokemonType.FIre, 20, 10, 3, 3);
-        pokemon2.GetSkills(SkillChart.fires[2], SkillChart.fires[1], SkillChart.normals[2], SkillChart.normals[1]);
-        enemy.GetPokemon0(pokemon2);
-        Pokemon pokemon3 = new Pokemon("파이리2", PokemonType.FIre, 15, 10, 2, 2);
-        pokemon3.GetSkills(SkillChart.fires[0], SkillChart.fires[1], SkillChart.normals[0], SkillChart.normals[1]);
-        enemy.GetPokemon1(pokemon3);
+
+        _playerPokemonIndex = FindFirstAlivePokemon();
 
         _currentState = BattleState.Menu;
     }
@@ -183,7 +176,16 @@ class BattleScene : Scene
                     }
                     else
                     {
-                        _currentLog = "상대 트레이너의 모든 포켓몬을 쓰러뜨렸다!";
+                        _currentLog = "전투에서 승리했다! 포켓몬들의 레벨이 올랐다!";
+                        int levelGap = (enemy.Name == "웅이") ? 1 : 2;
+                        foreach (var p in player.Pokemons)
+                        {
+                            if (p != null)
+                            {
+                                p.LevelUp(levelGap);
+                            }
+                        }
+                        enemy.IsDefeated = true;
                         _currentState = BattleState.BattleEnd;
                     }
                 }
@@ -261,6 +263,8 @@ class BattleScene : Scene
 
             case BattleState.BattleEnd:
                 DataManager.SaveData(player);
+                foreach (var p in enemy.Pokemons) p?.Heal();
+                //DataManager.SaveEnemyData(enemy);
                 ReturnRequested?.Invoke();
                 break;
         }
@@ -269,12 +273,34 @@ class BattleScene : Scene
     // 플레이어가 선택한 스킬의 데미지를 주고 출력
     private void ExecutePlayerTurn()
     {
+        float multiplier;
+        bool isHit;
+
         int previousHp = enemy.Pokemons[_enemyPokemonIndex].CurrentHp;
         var skill = player.Pokemons[_playerPokemonIndex].skills[_selectedSkillIndex];
-        int damage = player.Pokemons[_playerPokemonIndex].AttackTo(skill, enemy.Pokemons[_enemyPokemonIndex]);
+        int damage = player.Pokemons[_playerPokemonIndex].AttackTo(skill, enemy.Pokemons[_enemyPokemonIndex], out multiplier, out isHit);
         enemy.Pokemons[_enemyPokemonIndex].TakeDamage(damage);
 
-        _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}의 {skill.Name}! {previousHp - enemy.Pokemons[_enemyPokemonIndex].CurrentHp}의 피해!";
+        if (!isHit)
+        {
+            _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}의 {skill.Name}! 하지만 공격은 빗나갔다!";
+        }
+        else
+        {
+            _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}의 {skill.Name}! {previousHp - enemy.Pokemons[_enemyPokemonIndex].CurrentHp}의 피해!";
+            if (multiplier >= 2.0f)
+            {
+                _currentLog += " 효과가 굉장했다!";
+            }
+            else if (multiplier <= 0.5f && multiplier > 0)
+            {
+                _currentLog += " 효과가 별로인 듯하다....";
+            }
+            else if (multiplier == 0)
+            {
+                _currentLog += " 효과가 없는 듯하다...";
+            }
+        }
         _currentState = BattleState.PlayerAttack;
     }
 
@@ -282,12 +308,34 @@ class BattleScene : Scene
     private void ExecuteEnemyTurn()
     {
         Random rand = new Random();
+        float multiplier;
+        bool isHit;
+
         int previousHp = player.Pokemons[_playerPokemonIndex].CurrentHp;
         var skill = enemy.Pokemons[_enemyPokemonIndex].skills[rand.Next(0, 4)];
-        int damage = enemy.Pokemons[_enemyPokemonIndex].AttackTo(skill, player.Pokemons[_playerPokemonIndex]);
+        int damage = enemy.Pokemons[_enemyPokemonIndex].AttackTo(skill, player.Pokemons[_playerPokemonIndex], out multiplier, out isHit);
         player.Pokemons[_playerPokemonIndex].TakeDamage(damage);
 
-        _currentLog = $"적 {enemy.Pokemons[_enemyPokemonIndex].Name}의 {skill.Name}! {previousHp - player.Pokemons[_playerPokemonIndex].CurrentHp}의 피해!";
+        if (!isHit)
+        {
+            _currentLog = $"{player.Pokemons[_playerPokemonIndex].Name}의 {skill.Name}! 하지만 공격은 빗나갔다!";
+        }
+        else
+        {
+            _currentLog = $"적 {enemy.Pokemons[_enemyPokemonIndex].Name}의 {skill.Name}! {previousHp - player.Pokemons[_playerPokemonIndex].CurrentHp}의 피해!";
+            if (multiplier >= 2.0f)
+            {
+                _currentLog += " 효과가 굉장했다!";
+            }
+            else if (multiplier <= 0.5f && multiplier > 0)
+            {
+                _currentLog += " 효과가 별로인 듯하다....";
+            }
+            else if (multiplier == 0)
+            {
+                _currentLog += " 효과가 없는 듯하다...";
+            }
+        }
         _currentState = BattleState.EnemyAttack;
     }
 
@@ -305,6 +353,8 @@ class BattleScene : Scene
                 break;
             case BattleState.SelectAction:
                 var skills = player.Pokemons[_playerPokemonIndex].skills;
+                string typeSkill;
+
                 string[] skillNames = new string[5];
                 for (int i = 0; i < 4; i++)
                 {
@@ -362,10 +412,24 @@ class BattleScene : Scene
         int x = isPlayer ? 5 : 45; // 플레이어는 왼쪽, 적은 오른쪽에 배치
         int y = isPlayer ? 16 : 1;
 
-        buffer.WriteText(x, y, $"[{mon.Name}] {mon.CurrentHp}/{mon.MaxHp}", isPlayer ? ConsoleColor.Cyan : ConsoleColor.Red);
+        buffer.WriteText(x, y, $"[{mon.Name}] Lv.{mon.Level} {mon.CurrentHp}/{mon.MaxHp}", isPlayer ? ConsoleColor.Cyan : ConsoleColor.Red);
         buffer.WriteText(x, y + 1, " /\\_/\\");
         buffer.WriteText(x, y + 2, "( o.o )");
         buffer.WriteText(x, y + 3, " > ^ <");
+    }
+
+    // 처음 내보낼 포켓몬을 찾음
+    private int FindFirstAlivePokemon()
+    {
+        for (int i = 0; i < player.Pokemons.Length; i++)
+        {
+            
+            if (player.Pokemons[i] != null && !player.Pokemons[i].IsDead)
+            {
+                return i; 
+            }
+        }
+        return -1;
     }
 }
 

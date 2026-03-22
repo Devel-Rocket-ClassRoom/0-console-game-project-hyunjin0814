@@ -6,7 +6,7 @@ public class PokemonGame : GameApp
 {
     private readonly SceneManager<Scene> _scenes = new SceneManager<Scene>();
 
-    public PokemonGame() : base(90, 30)
+    public PokemonGame() : base(140, 35)
     {
     }
 
@@ -33,7 +33,7 @@ public class PokemonGame : GameApp
 
     private void ChangeToPlay()
     {
-        var play = new PlayScene();
+        var play = new MoveScene();
         play.BattleRequested += ChageToBattle;
         play.PlayAgainRequested += ChangeToTitle;
         _scenes.ChangeScene(play);

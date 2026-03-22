@@ -3,7 +3,7 @@
 public class Player : Trainer
 {
     private (int X, int Y) _previousPosition;
-    private List<Item> inventory;
+    //private List<Item> inventory;
 
     public (int X, int Y) PreviousPosition => _previousPosition;
 
@@ -13,7 +13,7 @@ public class Player : Trainer
         _position.X = startX;
         _position.Y = startY;
         isBattle = false;
-        inventory = new List<Item>();
+        //inventory = new List<Item>();
     }
 
     private void Move()
@@ -69,6 +69,11 @@ public class Player : Trainer
             return;
         }
         buffer.SetCell(Position.X, Position.Y, '@', ConsoleColor.Yellow);
+    }
+
+    public void SetPosition(int x, int y)
+    {
+        _position = (x, y);
     }
 
     public override void Update(float deltaTime)
