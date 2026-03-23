@@ -3,11 +3,11 @@
 public static class PokemonList
 {
 
-    public static Pokemon bugi = new Pokemon("꼬부기", PokemonType.Water, 18, 5, 3, 1, 2, SkillChart.normals[0], SkillChart.normals[1], SkillChart.waters[1], SkillChart.waters[2]);
-    public static Pokemon sseed = new Pokemon("이상해씨", PokemonType.Grass, 20, 5, 2, 2, 2, SkillChart.normals[0], SkillChart.normals[2], SkillChart.grasses[0], SkillChart.grasses[2]);
-    public static Pokemon pairi = new Pokemon("파이리", PokemonType.FIre, 16, 5, 3, 2, 3, SkillChart.normals[1], SkillChart.normals[2], SkillChart.fires[1], SkillChart.fires[2]);
-    public static Pokemon purin = new Pokemon("푸린", PokemonType.Normal, 22, 5, 1, 2, 1, SkillChart.normals[0], SkillChart.normals[1], SkillChart.normals[2], SkillChart.normals[3]);
-    public static Pokemon eevee = new Pokemon("이브이", PokemonType.Normal, 17, 5, 2, 2, 3, SkillChart.normals[0], SkillChart.normals[1], SkillChart.normals[2], SkillChart.normals[3]);
+    public static Pokemon bugi = new Pokemon("꼬부기", PokemonType.Water, 20, 5, 3, 2, 1, SkillChart.normals[0], SkillChart.normals[1], SkillChart.waters[1], SkillChart.waters[2]);
+    public static Pokemon sseed = new Pokemon("이상해씨", PokemonType.Grass, 23, 5, 2, 3, 2, SkillChart.normals[0], SkillChart.normals[2], SkillChart.grasses[0], SkillChart.grasses[2]);
+    public static Pokemon pairi = new Pokemon("파이리", PokemonType.FIre, 19, 5, 4, 1, 2, SkillChart.normals[1], SkillChart.normals[2], SkillChart.fires[1], SkillChart.fires[2]);
+    public static Pokemon purin = new Pokemon("푸린", PokemonType.Normal, 24, 5, 2, 2, 1, SkillChart.normals[0], SkillChart.normals[1], SkillChart.normals[2], SkillChart.normals[3]);
+    public static Pokemon eevee = new Pokemon("이브이", PokemonType.Normal,21, 5, 4, 2, 2, SkillChart.normals[0], SkillChart.normals[1], SkillChart.normals[2], SkillChart.normals[3]);
 
     public static Pokemon[] GetPokemons1()
     {

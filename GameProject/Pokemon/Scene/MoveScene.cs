@@ -42,15 +42,6 @@ public class MoveScene : Scene
         else
         {
             player = new Player(this, 1, 28, "Player");
-            //Pokemon pokemon1 = new Pokemon("꼬부기", PokemonType.Water, 20, 10, 5, 2);
-            //pokemon1.GetSkills(SkillChart.waters[0], SkillChart.waters[1], SkillChart.normals[0], SkillChart.normals[1]);
-            //player.GetPokemon0(pokemon1);
-            //Pokemon pokemon2 = new Pokemon("이상해씨", PokemonType.Grass, 20, 3, 3, 2);
-            //pokemon2.GetSkills(SkillChart.grasses[0], SkillChart.grasses[1], SkillChart.normals[0], SkillChart.normals[1]);
-            //player.GetPokemon1(pokemon2);
-            //Pokemon pokemon3 = new Pokemon("파이리1", PokemonType.FIre, 20, 10, 3, 3);
-            //pokemon3.GetSkills(SkillChart.fires[2], SkillChart.fires[1], SkillChart.normals[2], SkillChart.normals[1]);
-            //player.GetPokemon2(pokemon3);
         }
         AddGameObject(player);
 
@@ -109,6 +100,8 @@ public class MoveScene : Scene
         {
             if (Input.IsKeyDown(ConsoleKey.Escape))
             {
+                DataManager.ResetGameData();
+
                 PlayAgainRequested?.Invoke(); // 타이틀 씬으로 돌아가는 이벤트 발생
             }
             return;

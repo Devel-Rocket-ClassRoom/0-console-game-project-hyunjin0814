@@ -16,7 +16,7 @@ class BattleScene : Scene
     private int _enemyPokemonIndex = 0;
 
     private string _currentLog = string.Empty;
-    private string[] actions = { "스킬 사용", "포켓몬 교체", "아이템 사용" };
+    private string[] actions = { "스킬 사용", "포켓몬 교체" };
 
     private bool _isFirstAttackerFinished = false;
 

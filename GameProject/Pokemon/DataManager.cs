@@ -15,4 +15,11 @@
     public static Enemy LoadEnemyData() => currentEnemyData;
 
     public static void SaveNPCList(List<Enemy> npcs) => npcList = npcs;
+
+    public static void ResetGameData()
+    {
+        currentStage = 0;
+        isTutorialDone = false;
+        playerData = null;
+    }
 }

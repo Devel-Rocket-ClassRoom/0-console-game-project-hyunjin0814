@@ -84,7 +84,11 @@ public class Pokemon
 
     public void TakeDamage(int damage)
     {
-        if (damage - Defense < 1)
+        if (damage == 0)
+        {
+            return;
+        }
+        else if (damage - Defense < 1)
         {
             CurrentHp -= 1;
         }
